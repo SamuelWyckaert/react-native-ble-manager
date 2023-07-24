@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /**
  * Sample BLE React Native App
  */
@@ -35,6 +36,18 @@ import BleManager, {
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
+const CHAR_FREQ_AD_UUID = '75b54907-36e1-4688-b7f5-ea07361c56a8';
+const CHAR_FREQ_IMU_UUID = '75b54901-36e1-4688-b7f5-ea07361c56a8';
+const CHAR_BUFF_AD_UUID = '75b54908-36e1-4688-b7f5-ea07361c56a8';
+const CHAR_BUFF_IMU_UUID = '75b54902-36e1-4688-b7f5-ea07361c56a8';
+const CHAR_AD_EN = '25b54802-36e1-4688-b7f5-ea07361c56a8';
+const CHAR_AD_UUID = '25b54801-36e1-4688-b7f5-ea07361c56a8';
+
+const CONFIG_SERVICE_UUID = '75b54900-36e1-4688-b7f5-ea07361c56a8'
+const AD8232_SERVICE_UUID = '25b54800-36e1-4688-b7f5-ea07361c56a8'
+
+
+
 declare module 'react-native-ble-manager' {
   // enrich local contract with custom state properties needed by App.tsx
   interface Peripheral {
@@ -45,9 +58,12 @@ declare module 'react-native-ble-manager' {
 
 const App = () => {
   const [isScanning, setIsScanning] = useState(false);
+
   const [peripherals, setPeripherals] = useState(
     new Map<Peripheral['id'], Peripheral>(),
   );
+
+
 
   console.debug('peripherals map updated', [...peripherals.entries()]);
 
@@ -121,7 +137,51 @@ const App = () => {
 
   const togglePeripheralConnection = async (peripheral: Peripheral) => {
     if (peripheral && peripheral.connected) {
+      /*
       try {
+
+        
+        console.log('try' + peripheral.id);
+        // Before startNotification you need to call retrieveServices
+        const peripheralInfo = await BleManager.retrieveServices(peripheral.id);
+        console.log('retrieveServices', peripheralInfo.services);
+
+
+        await BleManager.write(peripheral.id, CONFIG_SERVICE_UUID, CHAR_FREQ_AD_UUID , [0x31]  );
+        console.log('Write to CHAR_FREQ_AD_UUID');
+        await BleManager.write(peripheral.id, CONFIG_SERVICE_UUID, CHAR_FREQ_IMU_UUID  , [0x31]  );
+        console.log('Write to CHAR_FREQ_IMU_UUID');
+        await BleManager.write(peripheral.id, CONFIG_SERVICE_UUID, CHAR_BUFF_AD_UUID   , [0x31, 0x30]  );
+        console.log('Write to CHAR_BUFF_AD_UUID');
+        await BleManager.write(peripheral.id, CONFIG_SERVICE_UUID, CHAR_BUFF_IMU_UUID    , [0x35, 0x30]  );
+        console.log('Write to CHAR_BUFF_IMU_UUID');
+        await BleManager.write(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_EN    , [0x31]  );
+        console.log('Write to CHAR_AD_EN');
+
+        const data = await BleManager.read(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_UUID);
+        console.log('read', data);
+
+        /* await BleManager.startNotification(peripheral.id, 'test', 'characteristic');
+        console.log('Started notification on ' + peripheral.id); */
+
+
+        // To enable BleManagerDidUpdateValueForCharacteristic listener
+        /*
+        await BleManager.startNotification(peripheral.id, 'test', 'characteristic');
+        console.log('Started notification on ' + peripheral.id);
+    
+        await BleManager.write(peripheral.id, 'service', 'characteristic', [1]);
+        console.log('Write to peripheral');
+        
+      } catch (err) {
+        console.log(err);
+      }*/
+
+      
+
+      
+      try {
+        
         await BleManager.disconnect(peripheral.id);
       } catch (error) {
         console.error(
@@ -332,10 +392,71 @@ const App = () => {
     );
   };
 
+  const getDataContinus = async () => {
+    try {
+      const connectedPeripherals = await BleManager.getConnectedPeripherals();
+      for(const peripheral of connectedPeripherals){
+
+        
+
+        
+        const peripheralInfo = await BleManager.retrieveServices(peripheral.id);
+        console.log('retrieveServices', peripheralInfo.services);
+
+
+        await BleManager.write(peripheral.id, CONFIG_SERVICE_UUID, CHAR_FREQ_AD_UUID , [0x31]  );
+        console.log('Write to CHAR_FREQ_AD_UUID');
+        await BleManager.write(peripheral.id, CONFIG_SERVICE_UUID, CHAR_FREQ_IMU_UUID  , [0x31]  );
+        console.log('Write to CHAR_FREQ_IMU_UUID');
+        await BleManager.write(peripheral.id, CONFIG_SERVICE_UUID, CHAR_BUFF_AD_UUID   , [0x31, 0x36]  );
+        console.log('Write to CHAR_BUFF_AD_UUID');
+        await BleManager.write(peripheral.id, CONFIG_SERVICE_UUID, CHAR_BUFF_IMU_UUID    , [0x31, 0x36]  );
+        console.log('Write to CHAR_BUFF_IMU_UUID');
+        await BleManager.write(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_EN    , [0x31]  );
+        console.log('Write to CHAR_AD_EN');
+
+        await BleManager.requestMTU(peripheral.id, 27);
+
+        BleManager.startNotification(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_UUID).then((data) => {
+          console.log('Started notification on ' + peripheral.id);
+          console.log('data', data);
+          // stop notification
+          BleManager.stopNotification(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_UUID).then(() => {
+            console.log('stopNotification');
+          }
+          );
+        }).catch((error) => {
+          console.log('Notification error', error);
+
+        })
+
+        /* const data = await BleManager.startNotification(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_UUID);
+        console.log('read', data);
+
+
+
+        sleep(1000)
+
+        await BleManager.stopNotification(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_UUID); */
+        
+        
+      }
+    }
+    catch(error){
+      console.log('error', error);
+    }
+
+  };
+
   return (
     <>
       <StatusBar />
       <SafeAreaView style={styles.body}>
+      <Pressable style={styles.scanButton} onPress={getDataContinus}>
+          <Text style={styles.scanButtonText}>
+            {'get data continuous'}
+          </Text>
+        </Pressable>
         <Pressable style={styles.scanButton} onPress={startScan}>
           <Text style={styles.scanButtonText}>
             {isScanning ? 'Scanning...' : 'Scan Bluetooth'}
