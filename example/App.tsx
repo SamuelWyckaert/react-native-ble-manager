@@ -21,6 +21,8 @@ import {
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
+import { BleSingleton } from './src/BleSingleton';
+
 const SECONDS_TO_SCAN_FOR = 7;
 const SERVICE_UUIDS: string[] = [];
 const ALLOW_DUPLICATES = true;
@@ -33,6 +35,7 @@ import BleManager, {
   BleScanMode,
   Peripheral,
 } from 'react-native-ble-manager';
+import { CapteurCard } from './src/CapteurCard';
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
@@ -48,24 +51,27 @@ const AD8232_SERVICE_UUID = '25b54800-36e1-4688-b7f5-ea07361c56a8'
 
 
 
-declare module 'react-native-ble-manager' {
-  // enrich local contract with custom state properties needed by App.tsx
-  interface Peripheral {
-    connected?: boolean;
-    connecting?: boolean;
-  }
-}
-
 const App = () => {
   const [isScanning, setIsScanning] = useState(false);
+
+
+  const [isGettingData, setIsGettingData] = useState(false);
+
+  const singleton = BleSingleton.get();
+
+
+
+  
+
+
+
 
   const [peripherals, setPeripherals] = useState(
     new Map<Peripheral['id'], Peripheral>(),
   );
 
 
-
-  console.debug('peripherals map updated', [...peripherals.entries()]);
+  // console.debug('peripherals map updated', [...peripherals.entries()]);
 
   const addOrUpdatePeripheral = (id: string, updatedPeripheral: Peripheral) => {
     // new Map() enables changing the reference & refreshing UI.
@@ -122,9 +128,38 @@ const App = () => {
   const handleUpdateValueForCharacteristic = (
     data: BleManagerDidUpdateValueForCharacteristicEvent,
   ) => {
-    console.debug(
+     if(data.peripheral === 'C8:F0:9E:70:FE:06'){
+      singleton.capteur(0).setValue(data.value);
+    }
+
+
+    else if (data.peripheral === 'C8:F0:9E:70:FA:96' ) {
+      singleton.capteur(1).setValue(data.value);
+   }
+
+
+    else if (data.peripheral === 'C8:F0:9E:78:A2:D2' ){
+      singleton.capteur(2).setValue(data.value);
+   }
+
+    else if (data.peripheral === 'C8:F0:9E:70:FD:C6' ){
+      singleton.capteur(3).setValue(data.value);
+   }
+
+    else if (data.peripheral === 'C8:F0:9E:70:FE:1E' ){
+      singleton.capteur(4).setValue(data.value);
+   }
+
+    else if (data.peripheral === 'C8:F0:9E:70:FA:C2' ){
+      singleton.capteur(5).setValue(data.value);
+    }
+
+    
+    /*console.debug(
       `[handleUpdateValueForCharacteristic] received data from '${data.peripheral}' with characteristic='${data.characteristic}' and value='${data.value}'`,
-    );
+    ); */
+
+    
   };
 
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
@@ -295,7 +330,7 @@ const App = () => {
     try {
       BleManager.start({showAlert: false})
         .then(() => console.debug('BleManager started.'))
-        .catch(error =>
+        .catch(error  =>
           console.error('BeManager could not be started.', error),
         );
     } catch (error) {
@@ -329,6 +364,7 @@ const App = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const handleAndroidPermissions = () => {
     if (Platform.OS === 'android' && Platform.Version >= 31) {
@@ -375,30 +411,56 @@ const App = () => {
 
   const renderItem = ({item}: {item: Peripheral}) => {
     const backgroundColor = item.connected ? '#069400' : Colors.white;
+
+    const index = Array.from(peripherals.values()).indexOf(item);
     return (
+
       <TouchableHighlight
         underlayColor="#0082FC"
         onPress={() => togglePeripheralConnection(item)}>
-        <View style={[styles.row, {backgroundColor}]}>
-          <Text style={styles.peripheralName}>
-            {/* completeLocalName (item.name) & shortAdvertisingName (advertising.localName) may not always be the same */}
-            {item.name} - {item?.advertising?.localName}
-            {item.connecting && ' - Connecting...'}
-          </Text>
-          <Text style={styles.rssi}>RSSI: {item.rssi}</Text>
-          <Text style={styles.peripheralId}>{item.id}</Text>
-        </View>
+        <CapteurCard item={item} index={index} />
       </TouchableHighlight>
     );
   };
 
+
   const getDataContinus = async () => {
+
+
+    const connectedPeripherals = await BleManager.getConnectedPeripherals();
+
+
+    
+
+    for(const peripheral of connectedPeripherals){
+
+      // RETRIEVE AVANT LE FOR ?
+
+      BleManager.retrieveServices(peripheral.id).then(() => {
+        BleManager.startNotification(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_UUID).then(() => {
+          console.log('Notification started');
+        })
+        .catch((error : any) => {
+          console.log('Notification error', error);
+
+        })
+
+
+      })
+
+    
+    }
+  }
+
+  const configureData = async () => {
+    setIsGettingData(true);
     try {
       const connectedPeripherals = await BleManager.getConnectedPeripherals();
       for(const peripheral of connectedPeripherals){
 
         
 
+        console.log(peripheral);
         
         const peripheralInfo = await BleManager.retrieveServices(peripheral.id);
         console.log('retrieveServices', peripheralInfo.services);
@@ -417,18 +479,8 @@ const App = () => {
 
         await BleManager.requestMTU(peripheral.id, 27);
 
-        BleManager.startNotification(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_UUID).then((data) => {
-          console.log('Started notification on ' + peripheral.id);
-          console.log('data', data);
-          // stop notification
-          BleManager.stopNotification(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_UUID).then(() => {
-            console.log('stopNotification');
-          }
-          );
-        }).catch((error) => {
-          console.log('Notification error', error);
 
-        })
+      
 
         /* const data = await BleManager.startNotification(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_UUID);
         console.log('read', data);
@@ -452,9 +504,16 @@ const App = () => {
     <>
       <StatusBar />
       <SafeAreaView style={styles.body}>
+
+
       <Pressable style={styles.scanButton} onPress={getDataContinus}>
           <Text style={styles.scanButtonText}>
             {'get data continuous'}
+          </Text>
+        </Pressable>
+        <Pressable style={styles.scanButton} onPress={configureData}>
+          <Text style={styles.scanButtonText}>
+            {'REGLAGE '}
           </Text>
         </Pressable>
         <Pressable style={styles.scanButton} onPress={startScan}>
