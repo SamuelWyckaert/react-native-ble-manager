@@ -6,30 +6,22 @@ import { Chart, VerticalAxis, HorizontalAxis, Line } from 'react-native-responsi
 
 
 interface CapteurCardProps {
-    index: number;
+    name: string;
     item: any;
+    isCapteur: boolean;
 }
 
 export const CapteurCard = (props: CapteurCardProps) => {
 
-    const { item, index } = props;
+    const { item, name, isCapteur } = props;
 
     const [count , setCount] = useState(0);
 
-    const capteur = BleSingleton.get().capteur(index);
-
-    function isCapteur() {
-      return item.id === 'C8:F0:9E:70:FE:06' ||
-              item.id === 'C8:F0:9E:70:FA:96' ||
-              item.id === 'C8:F0:9E:78:A2:D2' ||
-              item.id === 'C8:F0:9E:70:FD:C6' ||
-              item.id === 'C8:F0:9E:70:FE:1E' ||
-              item.id === 'C8:F0:9E:70:FA:C2' 
-              ;
-    }
+    const capteur = BleSingleton.get().capteur(name);
 
 
-    if(isCapteur()) {
+
+    if(isCapteur) {
       capteur.callback = () => {
           setCount(count + 1);
       }
@@ -65,7 +57,7 @@ export const CapteurCard = (props: CapteurCardProps) => {
           </Text>
           <Text style={styles.rssi}>RSSI: {item.rssi}</Text>
           <Text style={styles.peripheralId}>{item.id}</Text>
-          <Text> Nombre de trames par secondes :  { isCapteur() && BleSingleton.get().capteur(index).getTramesPerSecond()}</Text>
+          <Text> Nombre de trames par secondes :  { isCapteur && capteur.getTramesPerSecond()}</Text>
 
 
           <Chart

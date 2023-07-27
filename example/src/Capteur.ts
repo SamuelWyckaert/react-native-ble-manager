@@ -2,22 +2,28 @@ import { BleSingleton } from "./BleSingleton";
 
 export class Capteur {
 
+    name : string
+    id : string
+
     nbTrames : number;
-    index : number;
     value : number[];
     start : number;
     update : number;
     callback : Function;
 
-    constructor(index : number) {
+    constructor(name : string) {
 
         this.nbTrames = 0;
         this.value = [];
         this.start = 0;
         this.update = 0;
         this.callback = () => {};
-        this.index = index;
+        this.name = name;
+        this.id = "";
+    }
 
+    public setId(id : string) {
+        this.id = id;
     }
 
     public setValue(value : number[]) {

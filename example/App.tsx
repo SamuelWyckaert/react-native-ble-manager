@@ -128,33 +128,16 @@ const App = () => {
   const handleUpdateValueForCharacteristic = (
     data: BleManagerDidUpdateValueForCharacteristicEvent,
   ) => {
-     if(data.peripheral === 'C8:F0:9E:70:FE:06'){
-      singleton.capteur(0).setValue(data.value);
-    }
 
 
-    else if (data.peripheral === 'C8:F0:9E:70:FA:96' ) {
-      singleton.capteur(1).setValue(data.value);
-   }
+    const peripheral = peripherals.get(data.peripheral);
+
+    singleton.capteurById(data.peripheral)?.setValue(data.value);
+
+    // singleton.capteur(peripheral?.name ?? 'NO NAME').setValue(data.value)
 
 
-    else if (data.peripheral === 'C8:F0:9E:78:A2:D2' ){
-      singleton.capteur(2).setValue(data.value);
-   }
-
-    else if (data.peripheral === 'C8:F0:9E:70:FD:C6' ){
-      singleton.capteur(3).setValue(data.value);
-   }
-
-    else if (data.peripheral === 'C8:F0:9E:70:FE:1E' ){
-      singleton.capteur(4).setValue(data.value);
-   }
-
-    else if (data.peripheral === 'C8:F0:9E:70:FA:C2' ){
-      singleton.capteur(5).setValue(data.value);
-    }
-
-    
+  
     /*console.debug(
       `[handleUpdateValueForCharacteristic] received data from '${data.peripheral}' with characteristic='${data.characteristic}' and value='${data.value}'`,
     ); */
@@ -412,13 +395,27 @@ const App = () => {
   const renderItem = ({item}: {item: Peripheral}) => {
     const backgroundColor = item.connected ? '#069400' : Colors.white;
 
-    const index = Array.from(peripherals.values()).indexOf(item);
+    const name = item.name ?? 'NO NAME';
+
+    const isCapteur = item.name?.includes("EMIL") ?? false;
+
+    if(isCapteur){
+      singleton.capteur(name).setId(item.id);
+    }
+
+
     return (
+
+      isCapteur ? 
+      
       <TouchableHighlight
         underlayColor="#0082FC"
         onPress={() => togglePeripheralConnection(item)}>
-        <CapteurCard item={item} index={index} />
+        <CapteurCard item={item} name={name} isCapteur={isCapteur} />
       </TouchableHighlight>
+
+      :
+      <View></View>
     );
   };
 
