@@ -18,8 +18,21 @@ export const CapteurCard = (props: CapteurCardProps) => {
 
     const capteur = BleSingleton.get().capteur(index);
 
-    capteur.callback = () => {
-        setCount(count + 1);
+    function isCapteur() {
+      return item.id === 'C8:F0:9E:70:FE:06' ||
+              item.id === 'C8:F0:9E:70:FA:96' ||
+              item.id === 'C8:F0:9E:78:A2:D2' ||
+              item.id === 'C8:F0:9E:70:FD:C6' ||
+              item.id === 'C8:F0:9E:70:FE:1E' ||
+              item.id === 'C8:F0:9E:70:FA:C2' 
+              ;
+    }
+
+
+    if(isCapteur()) {
+      capteur.callback = () => {
+          setCount(count + 1);
+      }
     }
 
 
@@ -43,14 +56,6 @@ export const CapteurCard = (props: CapteurCardProps) => {
 
     ]
     
-
-    capteur.callback = () => {
-      setCount(count + 1);
-  }
-
-
-
-
     return (
         <View style={[styles.row, ]}>
           <Text style={styles.peripheralName}>
@@ -60,7 +65,7 @@ export const CapteurCard = (props: CapteurCardProps) => {
           </Text>
           <Text style={styles.rssi}>RSSI: {item.rssi}</Text>
           <Text style={styles.peripheralId}>{item.id}</Text>
-          <Text> Nombre de trames par secondes : {BleSingleton.get().capteur(index).getTramesPerSecond()}</Text>
+          <Text> Nombre de trames par secondes :  { isCapteur() && BleSingleton.get().capteur(index).getTramesPerSecond()}</Text>
 
 
           <Chart

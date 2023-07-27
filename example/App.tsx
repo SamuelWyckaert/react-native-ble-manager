@@ -414,7 +414,6 @@ const App = () => {
 
     const index = Array.from(peripherals.values()).indexOf(item);
     return (
-
       <TouchableHighlight
         underlayColor="#0082FC"
         onPress={() => togglePeripheralConnection(item)}>
