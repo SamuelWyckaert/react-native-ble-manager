@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { LineChart } from 'react-native-chart-kit';
-import { Chart, Line, Area, HorizontalAxis, VerticalAxis } from 'react-native-responsive-linechart'
 import { BleSingleton } from './BleSingleton';
 
 
