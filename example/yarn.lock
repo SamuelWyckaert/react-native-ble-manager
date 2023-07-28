@@ -6682,6 +6682,11 @@ scheduler@^0.23.0:
   dependencies:
     loose-envify "^1.1.0"
 
+scichart@^3.2.442:
+  version "3.2.442"
+  resolved "https://registry.npmjs.org/scichart/-/scichart-3.2.442.tgz"
+  integrity sha512-brlvZwxCbl5GVsXWS0lYo3oiypZIyhTrk5nCnXA1ZDvnkeDnP2SBbttX6eqXUt0wOx7sl8ZqN9atUIlUtGRBkQ==
+
 semver@^5.5.0:
   version "5.7.1"
   resolved "https://registry.npmjs.org/semver/-/semver-5.7.1.tgz"

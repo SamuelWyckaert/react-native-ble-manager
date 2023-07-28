@@ -1,8 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableHighlight, View } from "react-native";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { BleSingleton } from "./BleSingleton";
 import { Chart, VerticalAxis, HorizontalAxis, Line } from 'react-native-responsive-linechart'
+
+import {
+  SciChartSurface,
+  NumericAxis,
+  FastLineRenderableSeries,
+  XyDataSeries,
+  EllipsePointMarker,
+  SweepAnimation,
+  SciChartJsNavyTheme,
+  NumberRange
+} from "scichart";
 
 
 interface CapteurCardProps {
@@ -21,7 +32,8 @@ export const CapteurCard = (props: CapteurCardProps) => {
 
 
 
-    if(isCapteur) {
+
+    if(isCapteur && capteur) {
       capteur.callback = () => {
           setCount(count + 1);
       }
@@ -47,7 +59,8 @@ export const CapteurCard = (props: CapteurCardProps) => {
       ]
 
     ]
-    
+
+
     return (
         <View style={[styles.row, ]}>
           <Text style={styles.peripheralName}>
@@ -57,20 +70,12 @@ export const CapteurCard = (props: CapteurCardProps) => {
           </Text>
           <Text style={styles.rssi}>RSSI: {item.rssi}</Text>
           <Text style={styles.peripheralId}>{item.id}</Text>
-          <Text> Nombre de trames par secondes :  { isCapteur && capteur.getTramesPerSecond()}</Text>
+          <Text> Nombre de trames par secondes :  { isCapteur && capteur && capteur.getTramesPerSecond()}</Text>
 
 
-          <Chart
-            style={{ height: 200, width: '100%', backgroundColor: '#eee' }}
-            xDomain={{ min: -2, max: 10 }}
-            yDomain={{ min: -2, max: 20 }}
-            padding={{ left: 20, top: 10, bottom: 10, right: 10 }}
-          >
-            <VerticalAxis tickValues={[0, 4, 8, 12, 16, 20]} />
-            <HorizontalAxis tickCount={3} />
-            <Line data={data[count % 2]} smoothing="none" theme={{ stroke: { color: 'red', width: 1 } }} />
-          </Chart>
-                    
+            
+            <View id="scichart-root" style={{ maxWidth: 900 }} />
+                          
 
 
         </View>

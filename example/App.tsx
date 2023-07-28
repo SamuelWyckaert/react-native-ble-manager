@@ -36,6 +36,7 @@ import BleManager, {
   Peripheral,
 } from 'react-native-ble-manager';
 import { CapteurCard } from './src/CapteurCard';
+import { Capteur } from './src/Capteur';
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
@@ -51,6 +52,7 @@ const AD8232_SERVICE_UUID = '25b54800-36e1-4688-b7f5-ea07361c56a8'
 
 
 
+
 const App = () => {
   const [isScanning, setIsScanning] = useState(false);
 
@@ -58,7 +60,6 @@ const App = () => {
   const [isGettingData, setIsGettingData] = useState(false);
 
   const singleton = BleSingleton.get();
-
 
 
   
@@ -85,7 +86,7 @@ const App = () => {
       setPeripherals(new Map<Peripheral['id'], Peripheral>());
 
       try {
-        console.debug('[startScan] starting scan...');
+        // console.debug('[startScan] starting scan...');
         setIsScanning(true);
         BleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
           matchMode: BleScanMatchMode.Sticky,
@@ -93,20 +94,20 @@ const App = () => {
           callbackType: BleScanCallbackType.AllMatches,
         })
           .then(() => {
-            console.debug('[startScan] scan promise returned successfully.');
+            // console.debug('[startScan] scan promise returned successfully.');
           })
           .catch(err => {
-            console.error('[startScan] ble scan returned in error', err);
+            // console.error('[startScan] ble scan returned in error', err);
           });
       } catch (error) {
-        console.error('[startScan] ble scan error thrown', error);
+        // console.error('[startScan] ble scan error thrown', error);
       }
     }
   };
 
   const handleStopScan = () => {
     setIsScanning(false);
-    console.debug('[handleStopScan] scan is stopped.');
+    // console.debug('[handleStopScan] scan is stopped.');
   };
 
   const handleDisconnectedPeripheral = (
@@ -114,15 +115,15 @@ const App = () => {
   ) => {
     let peripheral = peripherals.get(event.peripheral);
     if (peripheral) {
-      console.debug(
+      /*console.debug(
         `[handleDisconnectedPeripheral][${peripheral.id}] previously connected peripheral is disconnected.`,
         event.peripheral,
-      );
+      );*/
       addOrUpdatePeripheral(peripheral.id, {...peripheral, connected: false});
     }
-    console.debug(
+    /*console.debug(
       `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`,
-    );
+    );*/
   };
 
   const handleUpdateValueForCharacteristic = (
@@ -146,7 +147,7 @@ const App = () => {
   };
 
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
-    console.debug('[handleDiscoverPeripheral] new BLE peripheral=', peripheral);
+    //console.debug('[handleDiscoverPeripheral] new BLE peripheral=', peripheral);
     if (!peripheral.name) {
       peripheral.name = 'NO NAME';
     }
@@ -209,6 +210,9 @@ const App = () => {
       }
     } else {
       await connectPeripheral(peripheral);
+
+
+
     }
   };
 
@@ -220,10 +224,10 @@ const App = () => {
         return;
       }
 
-      console.debug(
+      /*console.debug(
         '[retrieveConnected] connectedPeripherals',
         connectedPeripherals,
-      );
+      );*/
 
       for (var i = 0; i < connectedPeripherals.length; i++) {
         var peripheral = connectedPeripherals[i];
@@ -243,7 +247,7 @@ const App = () => {
         addOrUpdatePeripheral(peripheral.id, {...peripheral, connecting: true});
 
         await BleManager.connect(peripheral.id);
-        console.debug(`[connectPeripheral][${peripheral.id}] connected.`);
+        //console.debug(`[connectPeripheral][${peripheral.id}] connected.`);
 
         addOrUpdatePeripheral(peripheral.id, {
           ...peripheral,
@@ -256,15 +260,15 @@ const App = () => {
 
         /* Test read current RSSI value, retrieve services first */
         const peripheralData = await BleManager.retrieveServices(peripheral.id);
-        console.debug(
+        /*console.debug(
           `[connectPeripheral][${peripheral.id}] retrieved peripheral services`,
           peripheralData,
-        );
+        );*/
 
         const rssi = await BleManager.readRSSI(peripheral.id);
-        console.debug(
+        /*console.debug(
           `[connectPeripheral][${peripheral.id}] retrieved current RSSI value: ${rssi}.`,
-        );
+        );*/
 
         if (peripheralData.characteristics) {
           for (let characteristic of peripheralData.characteristics) {
@@ -277,10 +281,10 @@ const App = () => {
                     characteristic.characteristic,
                     descriptor.uuid,
                   );
-                  console.debug(
+                  /*console.debug(
                     `[connectPeripheral][${peripheral.id}] descriptor read as:`,
                     data,
-                  );
+                  );*/
                 } catch (error) {
                   console.error(
                     `[connectPeripheral][${peripheral.id}] failed to retrieve descriptor ${descriptor} for characteristic ${characteristic}:`,
@@ -400,7 +404,9 @@ const App = () => {
     const isCapteur = item.name?.includes("EMIL") ?? false;
 
     if(isCapteur){
-      singleton.capteur(name).setId(item.id);
+
+      let capteur = new Capteur(item.name ?? "", item.id)
+      singleton.addCapteur(capteur);
     }
 
 
@@ -473,6 +479,11 @@ const App = () => {
         await BleManager.write(peripheral.id, AD8232_SERVICE_UUID, CHAR_AD_EN    , [0x31]  );
         console.log('Write to CHAR_AD_EN');
 
+
+        if(Platform.OS === 'android'){
+          
+        }
+
         await BleManager.requestMTU(peripheral.id, 27);
 
 
@@ -504,12 +515,12 @@ const App = () => {
 
       <Pressable style={styles.scanButton} onPress={getDataContinus}>
           <Text style={styles.scanButtonText}>
-            {'get data continuous'}
+            {'StartNotification'}
           </Text>
         </Pressable>
         <Pressable style={styles.scanButton} onPress={configureData}>
           <Text style={styles.scanButtonText}>
-            {'REGLAGE '}
+            {'Reglage des capteurs '}
           </Text>
         </Pressable>
         <Pressable style={styles.scanButton} onPress={startScan}>

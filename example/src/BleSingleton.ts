@@ -11,25 +11,10 @@ export class BleSingleton {
     // 50 => 20 par seconde : NOK (on est vers 10 - 15 trames/s, ce qui delay trop l'acquisition de données)
     public static MAXIMUM_TICK = 250;
 
-    public NAMES = [
-        'EMIL-FDC6',
-        'EMIL-FA96',
-        'EMIL-FAC2',
-        'EMIL-FE1E',
-        'EMIL-FE06',
-        'EMIL-A2D2'
-    ]
-
-
     private static instance: BleSingleton;
 
     private constructor() { 
         this.capteurList = [];
-
-        for(let i = 0; i < 6; i++) {
-            this.capteurList.push(new Capteur(this.NAMES[i]));
-        }
-        
     }
 
     public static get(): BleSingleton {
@@ -44,8 +29,13 @@ export class BleSingleton {
         return BleSingleton.get().capteurList.find((capteur) => capteur.id === id);
     }
 
-    public capteur(name : string): Capteur {
-        return this.capteurList[this.NAMES.indexOf(name)];
+    public capteur(name : string): Capteur | undefined {
+        return BleSingleton.get().capteurList.find((capteur) => capteur.name === name);
+    }
+
+
+    public addCapteur(capteur : Capteur) {
+        BleSingleton.get().capteurList.push(capteur);
     }
 
 

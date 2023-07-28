@@ -11,7 +11,7 @@ export class Capteur {
     update : number;
     callback : Function;
 
-    constructor(name : string) {
+    constructor(name : string, id : string) {
 
         this.nbTrames = 0;
         this.value = [];
@@ -19,7 +19,7 @@ export class Capteur {
         this.update = 0;
         this.callback = () => {};
         this.name = name;
-        this.id = "";
+        this.id = id;
     }
 
     public setId(id : string) {
